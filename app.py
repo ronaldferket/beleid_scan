@@ -15,7 +15,7 @@ import plotly.graph_objs as go
 import copy
 
 
-# In[150]:
+# In[490]:
 
 
 lijst_vragen = { 1: {'mdw': ['Een medewerker informeert een student+ persoonlijk over zijn rol.', 
@@ -155,6 +155,10 @@ niveau_vergelijking = {'Iedereen': [2.5, 1.5, 3.5,2.2],
                       'Student': [3,1,4,2],
                       'Uitvoerende medewerker': [1.5,2.4,2.3,2.1],
                       'Beleid/Management/Bestuur': [4,4,3,3]}
+aspect_vergelijking = {'Iedereen': [3,3,3,3,3,3,3,3],
+                      'Student': [2,2,2,2,2,2,2,2],
+                      'Uitvoerende medewerker': [1,1,1,1,1,1,1,1],
+                      'Beleid/Management/Bestuur': [4,4,4,4,4,4,4,4]}
 
 
 # In[ ]:
@@ -187,7 +191,7 @@ niveau_vergelijking = {'Iedereen': [2.5, 1.5, 3.5,2.2],
 
 
 
-# In[429]:
+# In[497]:
 
 
 def average_one(data):
@@ -225,19 +229,9 @@ app.layout = html.Div(
                          ['Beleid', 'Medewerker', 'Student']) ],style={'display': 'inline-block','width': '75%'})
         
   
-        ]),
-            
-         html.Div([
-        dcc.Dropdown(
-            id='school',
-            options=[{'label':nametitle, 'value':name} for nametitle,name in 
-                     zip(['School1', 'School2', 'School3'],
-                         ['School1', 'School2', 'School3']) ],style={'display': 'inline-block','width': '50%'})
-        
-  
         ])
         
-        ,html.H3('Selecter het meest relevante antwoord'),]),
+        ,html.H3('Selecter het meest relevante antwoord', id = 'title1'),]),
         html.H4(id = 'vraag_categorie'),
         html.Div([dcc.RadioItems(id = 'vragen')]),
         html.Div(html.Thead([html.Tr([html.Th(html.Button('Volgende vraag', id='vraagknop', n_clicks_timestamp='0'))])]))
@@ -248,9 +242,8 @@ app.layout = html.Div(
     
     ,   html.Div([dcc.Store(id='waarden',storage_type='local'),]),
         html.Div([dcc.Store(id='data_loc',storage_type='local', ),]),
-        html.Div(html.Thead([html.Tr([html.Th(html.Button('Ik wil mijn resulaten zien', id='res_knop', n_clicks_timestamp='0'))])])),
      
-        html.Div(html.H3( 'Vergelijk mijn resultaten met:', id = 'resss',)),
+        html.Div(html.H4( 'Vergelijk mijn resultaten met:', id = 'resss',)),
         html.Div([
         dcc.Dropdown(
             id='resultaat',
@@ -269,7 +262,9 @@ app.layout = html.Div(
               dash.dependencies.Output('waarden', 'data'),
               dash.dependencies.Output('vraag_categorie', 'children'),
               dash.dependencies.Output('Chart', 'figure'),
-              dash.dependencies.Output('Chart1', 'figure')]
+              dash.dependencies.Output('Chart1', 'figure'),
+              dash.dependencies.Output('title1', 'style'),
+              dash.dependencies.Output('vraag_categorie', 'style')]
               ,[dash.dependencies.Input('vraagknop', 'n_clicks')],
                 [dash.dependencies.State('data_loc', 'data'),
                 dash.dependencies.State('waarden', 'data'),
@@ -281,42 +276,49 @@ def update_data(butt, locc, waardn, infor, groep):
         locc = [1,'mdw']
     if waardn is None:
         waardn = copy.deepcopy(position)
-    elif locc[1] == 'mdw':
-        locc[1] = 'bld'
-    elif locc[1] == 'bld':
-        locc[1] = 'org'
-    elif locc[1] == 'org':
-        locc[1] = 'rst'
-    elif locc[1] == 'rst':
-        if locc[0] != 8:
-            locc[0] = locc[0] +1
-            locc[1] = 'mdw'
-    optionz = [{'label':nametitle, 'value':name} for nametitle,name in  
-                    zip(lijst_vragen[locc[0]][locc[1]], np.arange(1,len(lijst_vragen[locc[0]][locc[1]]) +1)[::-1])]
-    waardn[0] = waardn[0] + 1
-    waardn[waardn[0]] = infor
-    orien = opties[locc[1]]
-    layout1 = go.Layout( title='Vergelijking op niveau')
-    layout2 = go.Layout( title='Vergelijking op Aspect')
-    bar = go.Bar(name = 'Eigen score', marker_color='#50c878',x = ['Medewerker', 'Beleid', 'Organisatie', 'Resultaat'], y = [average_one(waardn), average_two(waardn), average_three(waardn), average_four(waardn)])
-    bar_avg = go.Bar(name = 'Gemiddelde score', marker_color='#6ac5fe', x = ['Medewerker', 'Beleid', 'Organisatie', 'Resultaat'], y = niveau_vergelijking[groep])
-    spider = go.Scatterpolar(name = 'Eigen score', marker_color='#50c878', r=[np.average(waardn[2:6]),np.average(waardn[6:10]),np.average(waardn[10:14]),np.average(waardn[14:18]),np.average(waardn[18:22]),np.average(waardn[22:26]),np.average(waardn[26:30]),np.average(waardn[30:34])], theta=['Informatievoorziening en voorlichting', 'Fysieke en digitale toegankelijkheid','Ondersteuning', 'Deskundigheid', 'Flexibele onderwijssroutes','Toetsing en examinering', 'Waarborgen voor kwaliteit en continuiteit', 'BPV en werk'],fill='toself')
-    spider_avg = go.Scatterpolar(name = 'Gemiddelde score', marker_color='#6ac5fe', r=[1,3,2,3.7,1,4,2.5,1.3], theta=['Informatievoorziening en voorlichting', 'Fysieke en digitale toegankelijkheid','Ondersteuning', 'Deskundigheid', 'Flexibele onderwijssroutes','Toetsing en examinering', 'Waarborgen voor kwaliteit en continuiteit', 'BPV en werk'], fill='toself')
-    return locc, optionz, waardn, orien, {'data': [ bar, bar_avg], 'layout' : layout1}, {'data': [ spider, spider_avg], 'layout' : layout2}
+    
+    if waardn[33] == 0:
+        displ = {'display': 'inline-block'}
+        if locc[1] == 'mdw':
+            locc[1] = 'bld'
+        if locc[1] == 'bld':
+            locc[1] = 'org'
+        if locc[1] == 'org':
+            locc[1] = 'rst'
+        if locc[1] == 'rst':
+            if locc[0] != 8:
+                locc[0] = locc[0] +1
+                locc[1] = 'mdw'
+        optionz = [{'label':nametitle, 'value':name} for nametitle,name in  
+                        zip(lijst_vragen[locc[0]][locc[1]], np.arange(1,len(lijst_vragen[locc[0]][locc[1]]) +1)[::-1])]
+        waardn[0] = waardn[0] + 1
+        waardn[waardn[0]] = infor
+        orien = opties[locc[1]]
+        layout1 = go.Layout( title='Vergelijking op niveau')
+        layout2 = go.Layout( title='Vergelijking op Aspect')
+        bar = go.Bar(name = 'Eigen score', marker_color='#50c878',x = ['Medewerker', 'Beleid', 'Organisatie', 'Resultaat'], y = [average_one(waardn), average_two(waardn), average_three(waardn), average_four(waardn)])
+        bar_avg = go.Bar(name = 'Gemiddelde score', marker_color='#6ac5fe', x = ['Medewerker', 'Beleid', 'Organisatie', 'Resultaat'], y = niveau_vergelijking[groep])
+        spider = go.Scatterpolar(name = 'Eigen score', marker_color='#50c878', r=[np.average(waardn[2:6]),np.average(waardn[6:10]),np.average(waardn[10:14]),np.average(waardn[14:18]),np.average(waardn[18:22]),np.average(waardn[22:26]),np.average(waardn[26:30]),np.average(waardn[30:34])], theta=['Informatievoorziening en voorlichting', 'Fysieke en digitale toegankelijkheid','Ondersteuning', 'Deskundigheid', 'Flexibele onderwijssroutes','Toetsing en examinering', 'Waarborgen voor kwaliteit en continuiteit', 'BPV en werk'],fill='toself')
+        spider_avg = go.Scatterpolar(name = 'Gemiddelde score', marker_color='#6ac5fe', r=aspect_vergelijking[groep], theta=['Informatievoorziening en voorlichting', 'Fysieke en digitale toegankelijkheid','Ondersteuning', 'Deskundigheid', 'Flexibele onderwijssroutes','Toetsing en examinering', 'Waarborgen voor kwaliteit en continuiteit', 'BPV en werk'], fill='toself')
+        return locc, optionz, waardn, orien, {'data': [ bar, bar_avg], 'layout' : layout1}, {'data': [ spider, spider_avg], 'layout' : layout2}, displ, displ
+    if waardn[33] != 0:
+        displ = {'display': 'none'}
+        optionz = [{'label':'Dit was de vragenlijst, bedankt!', 'value': 0}]
+        orien = opties[locc[1]]
+        layout1 = go.Layout( title='Vergelijking op niveau')
+        layout2 = go.Layout( title='Vergelijking op Aspect')
+        bar = go.Bar(name = 'Eigen score', marker_color='#50c878',x = ['Medewerker', 'Beleid', 'Organisatie', 'Resultaat'], y = [average_one(waardn), average_two(waardn), average_three(waardn), average_four(waardn)])
+        bar_avg = go.Bar(name = 'Gemiddelde score', marker_color='#6ac5fe', x = ['Medewerker', 'Beleid', 'Organisatie', 'Resultaat'], y = niveau_vergelijking[groep])
+        spider = go.Scatterpolar(name = 'Eigen score', marker_color='#50c878', r=[np.average(waardn[2:6]),np.average(waardn[6:10]),np.average(waardn[10:14]),np.average(waardn[14:18]),np.average(waardn[18:22]),np.average(waardn[22:26]),np.average(waardn[26:30]),np.average(waardn[30:34])], theta=['Informatievoorziening en voorlichting', 'Fysieke en digitale toegankelijkheid','Ondersteuning', 'Deskundigheid', 'Flexibele onderwijssroutes','Toetsing en examinering', 'Waarborgen voor kwaliteit en continuiteit', 'BPV en werk'],fill='toself')
+        spider_avg = go.Scatterpolar(name = 'Gemiddelde score', marker_color='#6ac5fe', r=aspect_vergelijking[groep], theta=['Informatievoorziening en voorlichting', 'Fysieke en digitale toegankelijkheid','Ondersteuning', 'Deskundigheid', 'Flexibele onderwijssroutes','Toetsing en examinering', 'Waarborgen voor kwaliteit en continuiteit', 'BPV en werk'], fill='toself')
+        return locc, optionz, waardn, orien, {'data': [ bar, bar_avg], 'layout' : layout1}, {'data': [ spider, spider_avg], 'layout' : layout2}, displ, displ
 
 
-
-# In[430]:
+# In[498]:
 
 
 if __name__ == '__main__':
     app.run_server()
-
-
-# In[ ]:
-
-
-
 
 
 # In[ ]:

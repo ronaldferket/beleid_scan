@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[8]:
+# In[1]:
 
 
 import pandas as pd
@@ -15,7 +15,7 @@ import plotly.graph_objs as go
 import copy
 
 
-# In[490]:
+# In[2]:
 
 
 lijst_vragen = { 1: {'mdw': ['Een medewerker informeert een student+ persoonlijk over zijn rol.', 
@@ -191,7 +191,7 @@ aspect_vergelijking = {'Iedereen': [3,3,3,3,3,3,3,3],
 
 
 
-# In[497]:
+# In[3]:
 
 
 def average_one(data):
@@ -272,23 +272,29 @@ app.layout = html.Div(
                 dash.dependencies.State('resultaat', 'value')]
                  )
 def update_data(butt, locc, waardn, infor, groep):
-    if locc is None:
-        locc = [1,'mdw']
     if waardn is None:
         waardn = copy.deepcopy(position)
     
-    if waardn[33] == 0:
-        displ = {'display': 'inline-block'}
+    if (locc is None) == False:
         if locc[1] == 'mdw':
             locc[1] = 'bld'
-        if locc[1] == 'bld':
+        elif locc[1] == 'bld':
             locc[1] = 'org'
-        if locc[1] == 'org':
+        elif locc[1] == 'org':
             locc[1] = 'rst'
-        if locc[1] == 'rst':
+        elif locc[1] == 'rst':
             if locc[0] != 8:
                 locc[0] = locc[0] +1
                 locc[1] = 'mdw'
+    
+    if locc is None:
+        locc = [1,'mdw']
+    
+
+
+    if waardn[33] == 0:
+        displ = {'display': 'inline-block'}
+      
         optionz = [{'label':nametitle, 'value':name} for nametitle,name in  
                         zip(lijst_vragen[locc[0]][locc[1]], np.arange(1,len(lijst_vragen[locc[0]][locc[1]]) +1)[::-1])]
         waardn[0] = waardn[0] + 1
@@ -300,6 +306,7 @@ def update_data(butt, locc, waardn, infor, groep):
         bar_avg = go.Bar(name = 'Gemiddelde score', marker_color='#6ac5fe', x = ['Medewerker', 'Beleid', 'Organisatie', 'Resultaat'], y = niveau_vergelijking[groep])
         spider = go.Scatterpolar(name = 'Eigen score', marker_color='#50c878', r=[np.average(waardn[2:6]),np.average(waardn[6:10]),np.average(waardn[10:14]),np.average(waardn[14:18]),np.average(waardn[18:22]),np.average(waardn[22:26]),np.average(waardn[26:30]),np.average(waardn[30:34])], theta=['Informatievoorziening en voorlichting', 'Fysieke en digitale toegankelijkheid','Ondersteuning', 'Deskundigheid', 'Flexibele onderwijssroutes','Toetsing en examinering', 'Waarborgen voor kwaliteit en continuiteit', 'BPV en werk'],fill='toself')
         spider_avg = go.Scatterpolar(name = 'Gemiddelde score', marker_color='#6ac5fe', r=aspect_vergelijking[groep], theta=['Informatievoorziening en voorlichting', 'Fysieke en digitale toegankelijkheid','Ondersteuning', 'Deskundigheid', 'Flexibele onderwijssroutes','Toetsing en examinering', 'Waarborgen voor kwaliteit en continuiteit', 'BPV en werk'], fill='toself')
+        print(locc)
         return locc, optionz, waardn, orien, {'data': [ bar, bar_avg], 'layout' : layout1}, {'data': [ spider, spider_avg], 'layout' : layout2}, displ, displ
     if waardn[33] != 0:
         displ = {'display': 'none'}
@@ -314,17 +321,11 @@ def update_data(butt, locc, waardn, infor, groep):
         return locc, optionz, waardn, orien, {'data': [ bar, bar_avg], 'layout' : layout1}, {'data': [ spider, spider_avg], 'layout' : layout2}, displ, displ
 
 
-# In[498]:
+# In[ ]:
 
 
 if __name__ == '__main__':
     app.run_server()
-
-
-# In[ ]:
-
-
-
 
 
 # In[ ]:
